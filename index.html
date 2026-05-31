@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Turnos - Cantinho Madalena</title>
 /* =============================================
    REGRAS DE IMPRESSÃO (A4 Horizontal Automático)
    ============================================= */
@@ -91,3 +97,1044 @@
     font-weight: bold !important;
   }
 }
+<style>
+/* =============================================
+   VARIÁVEIS GLOBAIS — DARK MODE (ecrã)
+   ============================================= */
+:root {
+  --bg-primary:#18181b; --bg-secondary:#27272a; --bg-tertiary:#09090b;
+  --bg-info:#1e3a8a; --bg-danger:#7f1d1d; --bg-success:#14532d; --bg-warning:#78350f;
+  --text-primary:#f4f4f5; --text-secondary:#a1a1aa; --text-hint:#71717a;
+  --text-info:#93c5fd; --text-danger:#fca5a5; --text-success:#86efac; --text-warning:#fcd34d;
+  --border-default:#3f3f46; --border-strong:#52525b;
+  --border-info:#3b82f6; --border-success:#22c55e; --border-warning:#f59e0b; --border-danger:#ef4444;
+  --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
+  --font-main:system-ui,-apple-system,sans-serif;
+  --shadow-card:0 4px 6px -1px rgba(0,0,0,.5),0 2px 4px -1px rgba(0,0,0,.3);
+  --shadow-modal:0 20px 25px -5px rgba(0,0,0,.8),0 10px 10px -5px rgba(0,0,0,.6);
+  --tab-semana:#3b82f6; --tab-mes:#a855f7; --tab-equipa:#22c55e; --tab-trocas:#f97316;
+  --dia-dom:#ef4444; --dia-seg:#a1a1aa; --dia-ter:#3b82f6;
+  --dia-qua:#facc15; --dia-qui:#22c55e; --dia-sex:#d946ef; --dia-sab:#f97316;
+}
+
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:var(--font-main);background:var(--bg-tertiary);color:var(--text-primary);
+     -webkit-tap-highlight-color:transparent;min-height:100vh}
+.app{padding:10px;width:100%;max-width:900px;margin:0 auto}
+
+/* HEADER */
+.header{text-align:center;padding:12px 0 8px;border-bottom:1.5px solid var(--border-default);margin-bottom:10px}
+.header h1{font-size:clamp(16px,4vw,22px);font-weight:600;letter-spacing:.5px}
+.header-sub{font-size:clamp(11px,2.5vw,13px);color:var(--text-secondary);margin-top:3px}
+.ssl-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#4ade80;
+           background:rgba(34,197,94,.12);border:1px solid #22c55e;border-radius:20px;
+           padding:2px 8px;margin-top:5px}
+
+/* TABS */
+.tabs{display:flex;gap:3px;margin-bottom:10px;background:var(--bg-secondary);
+      border:1px solid var(--border-default);border-radius:var(--radius-md);
+      padding:3px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:60px;padding:7px 4px;font-size:clamp(11px,2.5vw,13px);font-weight:700;
+     border:1px solid transparent;background:transparent;border-radius:var(--radius-sm);
+     cursor:pointer;transition:all .2s;color:var(--text-secondary);white-space:nowrap}
+.tab:active{transform:scale(.97)}
+.tab[data-t="semana"]{color:var(--tab-semana)}
+.tab[data-t="mes"]   {color:var(--tab-mes)}
+.tab[data-t="equipa"]{color:var(--tab-equipa)}
+.tab[data-t="trocas"]{color:var(--tab-trocas)}
+.tab[data-t="semana"].active{background:var(--bg-primary);color:var(--tab-semana);border-color:var(--tab-semana)}
+.tab[data-t="mes"].active   {background:var(--bg-primary);color:var(--tab-mes);   border-color:var(--tab-mes)}
+.tab[data-t="equipa"].active{background:var(--bg-primary);color:var(--tab-equipa);border-color:var(--tab-equipa)}
+.tab[data-t="trocas"].active{background:var(--bg-primary);color:var(--tab-trocas);border-color:var(--tab-trocas)}
+
+.tab-hint{font-size:10px;background:rgba(255,255,255,.08);border-radius:20px;
+          padding:1px 5px;margin-left:3px;color:var(--text-hint)}
+
+.view{display:none}.view.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* WEEK NAV */
+.week-nav{display:flex;align-items:center;justify-content:space-between;
+          margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.week-nav-center{display:flex;flex-direction:column;align-items:center;gap:6px}
+.week-nav button.nav-arrow{border:1px solid var(--border-strong);background:var(--bg-primary);
+  color:var(--text-primary);padding:6px 14px;border-radius:var(--radius-md);
+  font-size:15px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.week-nav button.nav-arrow:hover{background:var(--bg-secondary)}
+.week-nav button.nav-arrow:active{background:var(--border-default);transform:scale(.96)}
+.week-label{font-size:clamp(12px,3vw,14px);font-weight:500;text-align:center;
+            text-transform:uppercase;letter-spacing:.5px}
+
+/* BOTÃO IMPRESSÃO — visível no ecrã, escondido na própria @media print */
+.btn-print{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;padding:5px 12px;
+  background:var(--bg-secondary);color:var(--text-primary);
+  border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+  cursor:pointer;font-weight:600;transition:background .2s;
+}
+.btn-print:hover{background:var(--border-default)}
+.btn-print:active{transform:scale(.96)}
+
+/* DAY CARDS — GRID RESPONSIVO (ecrã) */
+.days-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:600px){.days-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.days-grid{grid-template-columns:1fr 1fr 1fr}}
+
+.day-card{background:var(--bg-primary);border:1px solid var(--border-default);
+          border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow-card)}
+.day-header{display:flex;justify-content:space-between;align-items:center;
+            margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-default)}
+.day-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.day-date{font-size:11px;color:var(--text-hint)}
+
+.shift-row{display:flex;align-items:center;justify-content:space-between;
+           padding:6px 0;border-bottom:1px solid #2a2a2e;gap:6px}
+.shift-row:last-child{border-bottom:none}
+.emp-name{font-size:12px;font-weight:500;flex:1;min-width:0;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.shift-badge{font-size:10px;padding:3px 7px;border-radius:6px;font-weight:600;
+             cursor:pointer;transition:transform .1s;white-space:nowrap;flex-shrink:0}
+.shift-badge:active{transform:scale(.95)}
+.badge-morning  {background:#1e3a8a;color:#93c5fd;border:1px solid #3b82f6}
+.badge-afternoon{background:#78350f;color:#fcd34d;border:1px solid #f59e0b}
+.badge-fixed    {background:#14532d;color:#86efac;border:1px solid #22c55e}
+.badge-folga    {background:#7f1d1d;color:#fca5a5;border:1px solid #ef4444}
+.badge-falta    {background:#4c1d95;color:#ddd6fe;border:1px solid #7c3aed}
+.badge-baixa    {background:#1e3a2a;color:#6ee7b7;border:1px solid #059669}
+
+.alert-box{background:rgba(245,158,11,.1);border:1px solid var(--border-warning);
+           border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;
+           font-size:12px;color:var(--text-warning)}
+.alert-box strong{display:block;margin-bottom:4px;color:#fff}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);
+          z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--bg-primary);border-radius:var(--radius-lg);
+       border:1px solid var(--border-strong);padding:18px;
+       width:94%;max-width:380px;box-shadow:var(--shadow-modal)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:14px;
+          border-bottom:1px solid var(--border-default);padding-bottom:8px}
+.form-row{margin-bottom:12px}
+.form-row label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:5px}
+.form-row input,.form-row select{width:100%;font-size:13px;padding:8px 10px;
+  border:1px solid var(--border-default);border-radius:var(--radius-md);
+  background:var(--bg-secondary);color:var(--text-primary)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--border-info);
+  box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+.btn-row{display:flex;gap:8px;margin-top:14px}
+.btn{flex:1;padding:9px;font-size:13px;border-radius:var(--radius-md);cursor:pointer;
+     border:1px solid var(--border-default);font-weight:600;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--bg-info);color:var(--text-info);border-color:var(--border-info)}
+.btn-cancel{background:var(--bg-secondary);color:var(--text-primary)}
+
+/* MONTH */
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px}
+.month-day-hdr{font-size:10px;font-weight:700;text-align:center;
+               padding:5px 0;text-transform:uppercase}
+.month-cell{min-height:42px;background:var(--bg-secondary);border:1px solid var(--border-default);
+            border-radius:5px;padding:3px;cursor:pointer;display:flex;
+            flex-direction:column;align-items:center;transition:all .15s}
+.month-cell.empty{background:transparent;border:none;cursor:default}
+.month-cell.today{border:2px solid var(--border-info);background:rgba(59,130,246,.1)}
+.cell-num{font-size:10px;font-weight:500;margin-bottom:2px}
+.dots-container{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.cell-dot{width:5px;height:5px;border-radius:50%}
+.dot-folga{background:var(--dia-dom)}
+.dot-turno{background:var(--tab-semana)}
+.dot-falta{background:#7c3aed}
+.dot-baixa{background:#059669}
+
+/* EQUIPA */
+.emp-row{display:flex;align-items:center;gap:10px;padding:10px 12px;
+         background:var(--bg-secondary);border:1px solid var(--border-default);
+         border-radius:var(--radius-lg);margin-bottom:8px;box-shadow:var(--shadow-card)}
+.emp-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;
+            border:1px solid rgba(255,255,255,.1)}
+.emp-info{flex:1;min-width:0}
+.emp-info .name{font-size:13px;font-weight:600;color:var(--text-primary);
+                display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.emp-info .detail{font-size:11px;color:var(--text-secondary);margin-top:2px}
+.emp-edit{padding:7px 10px;border:1px solid var(--border-default);
+          border-radius:var(--radius-md);background:var(--bg-primary);
+          color:var(--text-primary);cursor:pointer;flex-shrink:0}
+
+/* TROCAS */
+.swap-card{background:var(--bg-secondary);border:1px solid var(--border-default);
+           border-radius:var(--radius-lg);padding:12px;margin-bottom:10px;
+           box-shadow:var(--shadow-card)}
+.swap-card h4{font-size:13px;font-weight:600;margin-bottom:8px}
+.sug-row{display:flex;align-items:center;justify-content:space-between;
+         padding:7px 0;border-bottom:1px solid var(--border-default);font-size:12px;gap:8px}
+.sug-row:last-child{border-bottom:none}
+.sug-ok{font-size:10px;padding:4px 9px;border-radius:5px;background:rgba(34,197,94,.2);
+        color:var(--text-success);border:1px solid var(--border-success);
+        cursor:pointer;font-weight:600}
+.add-btn{width:100%;padding:10px;font-size:13px;font-weight:600;
+         border-radius:var(--radius-md);cursor:pointer;background:rgba(34,197,94,.1);
+         color:var(--text-success);border:1px solid var(--border-success);margin-top:8px}
+.troca-confirm{display:none;background:rgba(34,197,94,.2);border:1px solid var(--border-success);
+               border-radius:var(--radius-md);padding:9px 12px;font-size:12px;
+               color:var(--text-success);margin-bottom:10px;font-weight:600;text-align:center}
+
+/* INSTALL BANNER */
+.install-banner{display:none;background:rgba(59,130,246,.12);border:1px solid var(--border-info);
+                border-radius:var(--radius-md);padding:9px 12px;margin-bottom:10px;
+                font-size:12px;color:var(--text-info);align-items:center;gap:8px}
+.install-banner.show{display:flex}
+.install-btn{font-size:11px;padding:4px 9px;border-radius:5px;background:var(--bg-info);
+             color:#fff;border:none;cursor:pointer;font-weight:600;white-space:nowrap}
+
+/* CORES DIAS */
+.c-dom{color:var(--dia-dom)} .c-seg{color:var(--dia-seg)} .c-ter{color:var(--dia-ter)}
+.c-qua{color:var(--dia-qua)} .c-qui{color:var(--dia-qui)} .c-sex{color:var(--dia-sex)} .c-sab{color:var(--dia-sab)}
+
+@media(min-width:600px){.month-cell{min-height:50px}.month-day-hdr{font-size:11px}}
+
+/* =============================================
+   IMPRESSÃO — BLOCO PRINCIPAL
+   =============================================
+   Estratégia:
+   - Semana  → A4 Landscape, 7 colunas, quadro de parede
+   - Mês     → A4 Landscape, calendário alargado
+   - Equipa  → A4 Portrait,  lista limpa
+   - Folgas  → A4 Portrait,  documento de registo
+   ============================================= */
+
+/* Classe injectada via JS antes de window.print() */
+body.print-landscape { }
+body.print-portrait  { }
+
+@media print {
+
+  /* --- NEUTRALIZAÇÃO DO DARK MODE --- */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  :root {
+    --bg-primary:#ffffff !important;
+    --bg-secondary:#f8f8f8 !important;
+    --bg-tertiary:#ffffff !important;
+    --text-primary:#000000 !important;
+    --text-secondary:#333333 !important;
+    --text-hint:#555555 !important;
+    --border-default:#cccccc !important;
+    --border-strong:#999999 !important;
+    --shadow-card:none !important;
+    --shadow-modal:none !important;
+  }
+  body {
+    background:#fff !important;
+    color:#000 !important;
+    font-size:10pt;
+  }
+
+  /* --- ELEMENTOS A ESCONDER SEMPRE --- */
+  .tabs,
+  .install-banner,
+  .btn-print,
+  .modal-bg,
+  .alert-box,
+  .sug-ok,
+  .add-btn,
+  .emp-edit,
+  .week-nav button.nav-arrow,
+  .ssl-badge,
+  #troca-confirm {
+    display:none !important;
+  }
+
+  /* --- ESTRUTURA GERAL --- */
+  .app { max-width:100% !important; padding:0 !important; margin:0 !important; }
+  .header {
+    border-bottom:2pt solid #000;
+    margin-bottom:12pt;
+    padding-bottom:6pt;
+  }
+  .header h1 { color:#000 !important; font-size:14pt; }
+  .header-sub { color:#333 !important; font-size:9pt; }
+  .week-nav { justify-content:center; border-bottom:1pt solid #ccc; padding-bottom:6pt; margin-bottom:10pt; }
+  .week-label { font-size:11pt; color:#000 !important; }
+
+  /* --- BADGES: contorno monocromático para poupar tinta --- */
+  .shift-badge {
+    background:transparent !important;
+    border:1pt solid #000 !important;
+    color:#000 !important;
+    font-size:7pt !important;
+    padding:2pt 4pt !important;
+  }
+  .badge-folga  { border-color:#cc0000 !important; color:#cc0000 !important; }
+  .badge-falta  { border-color:#6600cc !important; color:#6600cc !important; }
+  .badge-baixa  { border-color:#006633 !important; color:#006633 !important; }
+
+  /* ====================================================
+     SEMANA → A4 LANDSCAPE — 7 COLUNAS (QUADRO DE PAREDE)
+     ==================================================== */
+  body.print-landscape { }
+
+  @page { size:A4 landscape; margin:1cm 1.2cm; }
+
+  body.print-landscape .days-grid {
+    display:grid !important;
+    grid-template-columns:repeat(7,1fr) !important;
+    gap:6pt !important;
+    width:100% !important;
+  }
+  body.print-landscape .day-card {
+    border:1pt solid #000 !important;
+    border-radius:3pt !important;
+    padding:5pt !important;
+    background:#fff !important;
+    box-shadow:none !important;
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+    min-height:100pt;
+  }
+  body.print-landscape .day-header {
+    border-bottom:1pt solid #000 !important;
+    padding-bottom:3pt !important;
+    margin-bottom:4pt !important;
+  }
+  body.print-landscape .day-name {
+    font-size:8pt !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
+  }
+  body.print-landscape .day-date {
+    font-size:7pt !important;
+    color:#555 !important;
+  }
+  body.print-landscape .shift-row {
+    padding:2pt 0 !important;
+    border-bottom:0.5pt solid #eee !important;
+    gap:3pt !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+  }
+  body.print-landscape .shift-row:last-child { border-bottom:none !important; }
+  body.print-landscape .emp-name {
+    font-size:7.5pt !important;
+    font-weight:600 !important;
+    white-space:normal !important;
+    line-height:1.2 !important;
+  }
+  body.print-landscape .shift-badge {
+    font-size:6.5pt !important;
+    padding:1pt 3pt !important;
+    cursor:default !important;
+  }
+  /* Folgas na semana: lista compacta */
+  body.print-landscape .folgas-print-block {
+    margin-top:4pt;
+    display:flex;
+    flex-wrap:wrap;
+    gap:2pt;
+  }
+
+  /* ====================================================
+     MÊS → A4 LANDSCAPE — CALENDÁRIO ALARGADO
+     ==================================================== */
+  body.print-mes .month-grid {
+    gap:4pt !important;
+  }
+  body.print-mes .month-cell {
+    min-height:55pt !important;
+    border:1pt solid #ccc !important;
+    border-radius:2pt !important;
+    background:#fff !important;
+    padding:3pt !important;
+  }
+  body.print-mes .month-cell.today {
+    border:2pt solid #0055cc !important;
+    background:#eef4ff !important;
+  }
+  body.print-mes .month-day-hdr {
+    font-size:9pt !important;
+    color:#000 !important;
+    border-bottom:1pt solid #ccc;
+    padding-bottom:3pt;
+  }
+  body.print-mes .cell-num { font-size:9pt !important; font-weight:700 !important; }
+  body.print-mes .cell-dot { width:6pt !important; height:6pt !important; }
+  body.print-mes .dot-folga { background:#cc0000 !important; }
+  body.print-mes .dot-turno { background:#0055cc !important; }
+  body.print-mes .dot-falta { background:#6600cc !important; }
+  body.print-mes .dot-baixa { background:#006633 !important; }
+
+  /* ====================================================
+     EQUIPA & FOLGAS → A4 PORTRAIT
+     ==================================================== */
+  body.print-portrait {
+    /* @page injected via JS */
+  }
+  body.print-portrait .emp-row {
+    background:#fff !important;
+    border:1pt solid #ccc !important;
+    border-radius:3pt !important;
+    margin-bottom:6pt !important;
+    padding:6pt 8pt !important;
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+  body.print-portrait .emp-avatar {
+    border:1pt solid #ccc !important;
+    background:#eee !important;
+    color:#000 !important;
+  }
+  body.print-portrait .emp-info .name { color:#000 !important; font-size:10pt !important; }
+  body.print-portrait .emp-info .detail { color:#333 !important; font-size:8pt !important; }
+
+  body.print-portrait .swap-card {
+    background:#fff !important;
+    border:1pt solid #ccc !important;
+    border-radius:3pt !important;
+    padding:8pt !important;
+    margin-bottom:8pt !important;
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+  body.print-portrait .swap-card h4 { color:#000 !important; font-size:10pt !important; }
+  body.print-portrait .sug-row { font-size:9pt !important; color:#000 !important; border-bottom:0.5pt solid #ccc !important; }
+
+  /* Rodapé de impressão */
+  .print-footer {
+    display:block !important;
+    text-align:center;
+    font-size:7.5pt;
+    color:#555;
+    border-top:0.5pt solid #ccc;
+    margin-top:12pt;
+    padding-top:6pt;
+  }
+}
+
+/* Esconder rodapé no ecrã */
+.print-footer { display:none; }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Cantinho · Madalena</h1>
+    <div class="header-sub">Gestão de Turnos — Gerente: Sr. Rui</div>
+    <div class="ssl-badge">&#128274; Ligação Segura</div>
+  </div>
+
+  <div class="install-banner" id="install-banner">
+    <span>&#128241; Instalar como App no seu ecrã</span>
+    <button class="install-btn" id="install-btn">Instalar</button>
+    <button class="install-btn" style="background:var(--bg-secondary);color:var(--text-secondary)"
+            onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+  </div>
+
+<div style="text-align: center; margin: 12px 0;" class="no-print">
+  <button onclick="window.print()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: background 0.2s;">
+    🖨️ Imprimir Escala (A4 Horizontal)
+  </button>
+</div>
+
+  <div class="tabs">
+    <button class="tab active" data-t="semana" onclick="switchTab('semana')">Semana <span class="tab-hint" id="hint-semana"></span></button>
+    <button class="tab" data-t="mes"    onclick="switchTab('mes')"   >Mês    <span class="tab-hint" id="hint-mes"></span></button>
+    <button class="tab" data-t="equipa" onclick="switchTab('equipa')">Equipa <span class="tab-hint" id="hint-equipa"></span></button>
+    <button class="tab" data-t="trocas" onclick="switchTab('trocas')">Folgas <span class="tab-hint" id="hint-trocas"></span></button>
+  </div>
+
+  <div id="view-semana" class="view active"></div>
+  <div id="view-mes"    class="view"></div>
+  <div id="view-equipa" class="view"></div>
+  <div id="view-trocas" class="view"></div>
+
+  <!-- Rodapé visível apenas na impressão -->
+  <div class="print-footer" id="print-footer">
+    Cantinho · Madalena — Gestão de Turnos — Impresso em <span id="print-date"></span>
+  </div>
+</div>
+
+<!-- Modal editar funcionário -->
+<div class="modal-bg" id="modal-emp">
+  <div class="modal">
+    <h3 id="modal-title">Editar Funcionário</h3>
+    <div class="form-row"><label>Nome</label><input id="edit-name" type="text" autocomplete="off"></div>
+    <div class="form-row"><label>Turno Base</label>
+      <select id="edit-turno">
+        <option value="06h30-14h30">06h30 - 14h30</option>
+        <option value="13h30-21h00">13h30 - 21h00</option>
+        <option value="08h30-16h30">08h30 - 16h30 (Almoço 11h30)</option>
+        <option value="09h00-17h00">09h00 - 17h00 (Almoço 12h00)</option>
+        <option value="09h00-13h00+16h00-20h00">09h00-13h00 + 16h00-20h00</option>
+        <option value="ROTATIVO">Rotativo (06h30 / 13h30)</option>
+        <option value="GERENTE">08h00 - 19h00 (Gerente)</option>
+      </select>
+    </div>
+    <div class="form-row"><label>1.º Dia de Folga Fixo</label>
+      <select id="edit-folga">
+        <option value="0">Domingo</option><option value="1">Segunda</option>
+        <option value="2">Terça</option><option value="3">Quarta</option>
+        <option value="4">Quinta</option><option value="5">Sexta</option><option value="6">Sábado</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modal-emp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEmp()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal alterar turno / falta / baixa -->
+<div class="modal-bg" id="modal-shift">
+  <div class="modal">
+    <h3 id="modal-shift-title">Alterar Dia</h3>
+    <p id="modal-shift-desc" style="font-size:11px;color:var(--text-secondary);margin-bottom:12px"></p>
+    <div class="form-row"><label>Opção</label>
+      <select id="edit-shift-spec">
+        <option value="06h30-14h30">Turno Manhã: 06h30 - 14h30</option>
+        <option value="13h30-21h00">Turno Tarde: 13h30 - 21h00</option>
+        <option value="08h30-16h30">Turno Fixo: 08h30 - 16h30</option>
+        <option value="09h00-17h00">Turno Fixo: 09h00 - 17h00</option>
+        <option value="09h00-13h00+16h00-20h00">Intercalar</option>
+        <option value="GERENTE">Gerente: 08h00 - 19h00</option>
+        <option value="FOLGA">Folga</option>
+        <option value="FALTA">Falta (Injustificada)</option>
+        <option value="BAIXA">Baixa Médica</option>
+        <option value="RESET">Restaurar Automático</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Nota (opcional)</label>
+      <input id="edit-shift-note" type="text" placeholder="ex: substituição por Ricardo">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modal-shift')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveShiftOverride()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =============================================
+   CONSTANTES E ESTADO
+   ============================================= */
+const DIAS_PT   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DIAS_FULL = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DIAS_CLS  = ['c-dom','c-seg','c-ter','c-qua','c-qui','c-sex','c-sab'];
+
+let currentWeekOffset = 0;
+let currentMonth = new Date();
+let editingIdx = -1;
+let currentShiftEdit = null;
+let shiftOverrides  = {};
+let statusOverrides = {};
+let noteOverrides   = {};
+let contadorSegundaFolga = {};
+
+let funcionarios = [
+  {nome:'Rui',       turno:'GERENTE',               folga:[4], fixo:true,  cor:'#1e3a8a',tc:'#bfdbfe'},
+  {nome:'Vera',      turno:'08h30-16h30',            folga:[1], fixo:true,  cor:'#14532d',tc:'#bbf7d0'},
+  {nome:'Daniela',   turno:'09h00-17h00',            folga:[2], fixo:true,  cor:'#78350f',tc:'#fde68a'},
+  {nome:'Bruno',     turno:'09h00-13h00+16h00-20h00',folga:[5], fixo:true,  cor:'#831843',tc:'#fbcfe8'},
+  {nome:'Maria João',turno:'ROTATIVO', folga:[1], fixo:false, grupo:1, cor:'#312e81',tc:'#c7d2fe'},
+  {nome:'Simão',     turno:'ROTATIVO', folga:[2], fixo:false, grupo:1, cor:'#064e3b',tc:'#a7f3d0'},
+  {nome:'Ricardo',   turno:'ROTATIVO', folga:[3], fixo:false, grupo:2, cor:'#7c2d12',tc:'#fed7aa'},
+  {nome:'Fátima',    turno:'ROTATIVO', folga:[3], fixo:false, grupo:1, cor:'#7f1d1d',tc:'#fecaca'},
+  {nome:'Vieira',    turno:'ROTATIVO', folga:[5], fixo:false, grupo:2, cor:'#3f3f46',tc:'#e4e4e7'},
+];
+
+/* =============================================
+   UTILITÁRIOS
+   ============================================= */
+function getWeekNumber(d){
+  let dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  let dn=dt.getUTCDay()||7; dt.setUTCDate(dt.getUTCDate()+4-dn);
+  let ys=new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  return Math.ceil((((dt-ys)/86400000)+1)/7);
+}
+function fmtKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function empKey(emp,d){return emp.nome+'_'+fmtKey(d);}
+function getFolgasBase(f){return Array.isArray(f.folga)?f.folga:(f.folga===null?[]:[f.folga]);}
+
+function getStatus(emp,dateObj){
+  const k=empKey(emp,dateObj);
+  if(statusOverrides[k]) return statusOverrides[k];
+  if(getFolgasBase(emp).includes(dateObj.getDay())) return 'FOLGA';
+  return null;
+}
+function isFolga(emp,dateObj){return getStatus(emp,dateObj)!=null;}
+function getTurnoLabel(emp,dateObj){
+  const k=empKey(emp,dateObj);
+  const st=statusOverrides[k];
+  if(st==='FALTA') return 'FALTA';
+  if(st==='BAIXA') return 'BAIXA';
+  if(st==='FOLGA') return 'FOLGA';
+  if(shiftOverrides[k]) return shiftOverrides[k];
+  if(emp.fixo){return emp.turno==='GERENTE'?'08h00-19h00':emp.turno;}
+  let even=(getWeekNumber(dateObj)%2===0);
+  let manha=emp.grupo===1?even:!even;
+  return manha?'06h30-14h30':'13h30-21h00';
+}
+function getBadge(lbl){
+  if(lbl==='FALTA') return 'badge-falta';
+  if(lbl==='BAIXA') return 'badge-baixa';
+  if(lbl==='FOLGA') return 'badge-folga';
+  if(lbl.includes('06h30')) return 'badge-morning';
+  if(lbl.includes('13h30')) return 'badge-afternoon';
+  return 'badge-fixed';
+}
+function getWeekDates(off){
+  const now=new Date(),mon=new Date(now);
+  const day=mon.getDay(),diff=day===0?-6:1-day;
+  mon.setDate(now.getDate()+diff+(off*7));
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d);}
+  return days;
+}
+function fmt2(d){return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;}
+function fmtDateLong(d){
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  return d.toLocaleDateString('pt-PT',opts);
+}
+
+/* =============================================
+   IMPRESSÃO INTELIGENTE
+   Injeta @page + classe body antes de print()
+   e restaura após afterprint
+   ============================================= */
+let printStyleTag = null;
+
+function printView(mode){
+  // Atualizar data de rodapé
+  document.getElementById('print-date').textContent = fmtDateLong(new Date());
+
+  // Remover tag anterior se existir
+  if(printStyleTag){ printStyleTag.remove(); printStyleTag=null; }
+
+  const isLandscape = (mode==='semana'||mode==='mes');
+  const cls = isLandscape ? 'print-landscape' : 'print-portrait';
+
+  // Injetar @page dinâmico
+  printStyleTag = document.createElement('style');
+  if(isLandscape){
+    printStyleTag.textContent = `@media print { @page { size: A4 landscape; margin: 1cm 1.2cm; } }`;
+  } else {
+    printStyleTag.textContent = `@media print { @page { size: A4 portrait;  margin: 1.5cm; } }`;
+  }
+  document.head.appendChild(printStyleTag);
+
+  // Classe de modo no body
+  document.body.classList.remove('print-landscape','print-portrait','print-mes');
+  document.body.classList.add(cls);
+  if(mode==='mes') document.body.classList.add('print-mes');
+
+  window.print();
+}
+
+// Limpar classes após impressão
+window.addEventListener('afterprint',()=>{
+  document.body.classList.remove('print-landscape','print-portrait','print-mes');
+  if(printStyleTag){ printStyleTag.remove(); printStyleTag=null; }
+});
+
+/* =============================================
+   RENDER SEMANA
+   ============================================= */
+function renderSemana(){
+  const days=getWeekDates(currentWeekOffset);
+  const wn=getWeekNumber(days[0]);
+  let alerts=[], absentes=[];
+
+  let html=`<div class="week-nav">
+    <button class="nav-arrow" onclick="changeWeek(-1)">&#8592;</button>
+    <div class="week-nav-center">
+      <span class="week-label">${fmt2(days[0])} a ${fmt2(days[6])}</span>
+      <button class="btn-print" onclick="printView('semana')">&#128438; Imprimir Semana A4</button>
+    </div>
+    <button class="nav-arrow" onclick="changeWeek(1)">&#8594;</button>
+  </div>
+  <div style="text-align:center;margin-bottom:12px;font-size:11px;color:var(--text-hint);
+              text-transform:uppercase;letter-spacing:1px">
+    Semana ${wn} &mdash; Escala Automática
+  </div>
+  <div class="days-grid">`;
+
+  days.forEach(date=>{
+    const dow=date.getDay();
+    const ativos=funcionarios.filter(f=>!isFolga(f,date));
+    const ausentes=funcionarios.filter(f=>isFolga(f,date));
+    if(ausentes.length>=3) alerts.push(`${DIAS_FULL[dow]}: ${ausentes.length} ausentes`);
+    ausentes.filter(f=>['FALTA','BAIXA'].includes(getStatus(f,date))).forEach(f=>absentes.push(f.nome));
+
+    html+=`<div class="day-card">
+      <div class="day-header">
+        <span class="day-name ${DIAS_CLS[dow]}">${DIAS_FULL[dow]}</span>
+        <span class="day-date">${fmt2(date)}</span>
+      </div>`;
+    ativos.forEach(f=>{
+      const lbl=getTurnoLabel(f,date);
+      html+=`<div class="shift-row">
+        <span class="emp-name">${f.nome}</span>
+        <span class="shift-badge ${getBadge(lbl)}"
+              onclick="openShiftModal('${f.nome}','${fmtKey(date)}')"
+              title="Toque para editar">${lbl}</span>
+      </div>`;
+    });
+    if(ausentes.length){
+      html+=`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">`;
+      ausentes.forEach(f=>{
+        const st=getStatus(f,date)||'FOLGA';
+        html+=`<span class="shift-badge ${getBadge(st)}"
+                     onclick="openShiftModal('${f.nome}','${fmtKey(date)}')"
+                     title="Toque para editar">&#9679; ${f.nome}</span>`;
+      });
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+
+  if(alerts.length){
+    let ab=`<div class="alert-box"><strong>&#9888; Aviso de Gestão</strong>`;
+    alerts.forEach(a=>{ab+=`<div>• ${a}</div>`;});
+    ab+=`</div>`;
+    html=ab+html;
+  }
+  document.getElementById('view-semana').innerHTML=html;
+  const hEl=document.getElementById('hint-semana');
+  if(hEl) hEl.textContent=absentes.length?absentes.length+'!':'';
+  updateHints();
+}
+function changeWeek(d){currentWeekOffset+=d;renderSemana();}
+
+/* =============================================
+   RENDER MÊS
+   ============================================= */
+function renderMes(){
+  const yr=currentMonth.getFullYear(),mo=currentMonth.getMonth();
+  const firstDay=new Date(yr,mo,1).getDay();
+  const dim=new Date(yr,mo+1,0).getDate();
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  let html=`<div class="week-nav">
+    <button class="nav-arrow" onclick="changeMonth(-1)">&#8592;</button>
+    <div class="week-nav-center">
+      <span class="week-label">${MESES[mo]} ${yr}</span>
+      <button class="btn-print" onclick="printView('mes')">&#128438; Imprimir Mês A4</button>
+    </div>
+    <button class="nav-arrow" onclick="changeMonth(1)">&#8594;</button>
+  </div>
+  <div class="month-grid">`;
+
+  DIAS_PT.forEach((d,i)=>{html+=`<div class="month-day-hdr ${DIAS_CLS[i]}">${d}</div>`;});
+  const off=firstDay===0?6:firstDay-1;
+  for(let i=0;i<off;i++) html+=`<div class="month-cell empty"></div>`;
+
+  const today=new Date(); let faltaCount=0;
+  for(let d=1;d<=dim;d++){
+    const date=new Date(yr,mo,d); const dow=date.getDay();
+    const isT=date.toDateString()===today.toDateString();
+    const fg=funcionarios.filter(f=>getStatus(f,date)==='FOLGA').length;
+    const ft=funcionarios.filter(f=>getStatus(f,date)==='FALTA').length;
+    const bx=funcionarios.filter(f=>getStatus(f,date)==='BAIXA').length;
+    const tr=funcionarios.filter(f=>!isFolga(f,date)).length;
+    if(ft>0) faltaCount+=ft;
+    html+=`<div class="month-cell${isT?' today':''}" onclick="monthClick(${yr},${mo},${d})">
+      <div class="cell-num ${DIAS_CLS[dow]}">${d}</div>
+      <div class="dots-container">
+        ${fg?`<div class="cell-dot dot-folga"></div>`:''}
+        ${tr?`<div class="cell-dot dot-turno"></div>`:''}
+        ${ft?`<div class="cell-dot dot-falta"></div>`:''}
+        ${bx?`<div class="cell-dot dot-baixa"></div>`:''}
+      </div>
+    </div>`;
+  }
+  html+=`</div>
+  <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;
+              font-size:10px;color:var(--text-hint);flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:4px"><div class="cell-dot dot-folga"></div>Folga</div>
+    <div style="display:flex;align-items:center;gap:4px"><div class="cell-dot dot-turno"></div>Turno</div>
+    <div style="display:flex;align-items:center;gap:4px"><div class="cell-dot dot-falta"></div>Falta</div>
+    <div style="display:flex;align-items:center;gap:4px"><div class="cell-dot dot-baixa"></div>Baixa</div>
+  </div>`;
+
+  document.getElementById('view-mes').innerHTML=html;
+  const h=document.getElementById('hint-mes');
+  if(h) h.textContent=faltaCount?faltaCount+'!':'';
+  updateHints();
+}
+function monthClick(yr,mo,d){
+  const date=new Date(yr,mo,d);
+  const ausentes=funcionarios.filter(f=>isFolga(f,date));
+  const ativos=funcionarios.filter(f=>!isFolga(f,date));
+  let msg=`${DIAS_FULL[date.getDay()]}, ${d}/${mo+1}/${yr}\n\nA Trabalhar:\n`;
+  ativos.forEach(f=>{msg+=`- ${f.nome} (${getTurnoLabel(f,date)})\n`;});
+  msg+=`\nAusentes:\n`;
+  if(!ausentes.length) msg+='(nenhum)\n';
+  ausentes.forEach(f=>{msg+=`- ${f.nome} [${getStatus(f,date)}]\n`;});
+  alert(msg);
+}
+function changeMonth(d){currentMonth.setMonth(currentMonth.getMonth()+d);renderMes();}
+
+/* =============================================
+   RENDER EQUIPA
+   ============================================= */
+function renderEquipa(){
+  let html=`<div style="text-align:right;margin-bottom:10px">
+    <button class="btn-print" onclick="printView('equipa')">&#128438; Imprimir Equipa A4</button>
+  </div>`;
+  let baixaCount=0;
+  funcionarios.forEach((f,i)=>{
+    const ini=f.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const folgas=getFolgasBase(f).map(d=>DIAS_PT[d]).join(' + ')||'Nenhuma';
+    const tipo=f.fixo
+      ?`<span class="shift-badge badge-fixed" style="font-size:9px">Fixo</span>`
+      :`<span class="shift-badge badge-morning" style="font-size:9px">Rotativo G${f.grupo||'?'}</span>`;
+    const hoje=new Date(); const st=getStatus(f,hoje);
+    let statusExtra='';
+    if(st==='BAIXA'){statusExtra=`<span class="shift-badge badge-baixa" style="font-size:9px">Baixa</span>`;baixaCount++;}
+    if(st==='FALTA') statusExtra=`<span class="shift-badge badge-falta" style="font-size:9px">Falta</span>`;
+    html+=`<div class="emp-row">
+      <div class="emp-avatar" style="background:${f.cor};color:${f.tc}">${ini}</div>
+      <div class="emp-info">
+        <div class="name">${f.nome} ${tipo} ${statusExtra}</div>
+        <div class="detail">${f.turno==='GERENTE'?'Gerente - 08h00-19h00':f.turno} &bull; Folga: ${folgas}</div>
+      </div>
+      <button class="emp-edit" onclick="openEditEmp(${i})">&#9998;</button>
+    </div>`;
+  });
+  html+=`<button class="add-btn" onclick="alert('Adicione o colaborador editando os dados.')">+ Adicionar Colaborador</button>`;
+  document.getElementById('view-equipa').innerHTML=html;
+  const h=document.getElementById('hint-equipa');
+  if(h) h.textContent=baixaCount?baixaCount+'':'';
+  updateHints();
+}
+
+/* =============================================
+   RENDER TROCAS / FOLGAS
+   ============================================= */
+function renderTrocas(){
+  let html=`<div class="troca-confirm" id="troca-confirm"></div>
+  <div style="text-align:right;margin-bottom:10px">
+    <button class="btn-print" onclick="printView('trocas')">&#128438; Imprimir Folgas A4</button>
+  </div>`;
+
+  html+=`<div class="swap-card">
+    <h4 style="color:var(--tab-equipa)">Motor 2.ª Folga Inteligente</h4>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:10px;line-height:1.5">
+      Atribui 2.ºs dias de folga (prioridade Sáb/Dom) sem repetir o mesmo colaborador e limitando a 2 ausentes por dia.
+    </p>
+    <button class="add-btn" style="background:rgba(34,197,94,.1);border-color:#22c55e;color:#4ade80"
+            onclick="gerarSegundasFolgas()">Gerar Simulação Semana Atual</button>
+  </div>`;
+
+  const days=getWeekDates(currentWeekOffset);
+  let sugestoes=[];
+  days.forEach(date=>{
+    const folgam=funcionarios.filter(f=>getStatus(f,date)==='FOLGA'&&!f.fixo&&getFolgasBase(f).length===1);
+    for(let i=0;i<folgam.length-1;i++){
+      for(let j=i+1;j<folgam.length;j++){
+        const fa=folgam[i],fb=folgam[j];
+        const dA=getFolgasBase(fa)[0],dB=getFolgasBase(fb)[0];
+        if(dA!==dB) sugestoes.push({desc:`${fa.nome} (${DIAS_PT[dA]}) ↔ ${fb.nome} (${DIAS_PT[dB]})`,fa,fb,dA,dB});
+      }
+    }
+  });
+  if(sugestoes.length){
+    html+=`<div class="swap-card"><h4 style="color:var(--tab-trocas)">Trocas Sugeridas — Semana Atual</h4>`;
+    sugestoes.slice(0,5).forEach(s=>{
+      html+=`<div class="sug-row"><span>${s.desc}</span>
+             <button class="sug-ok" onclick="aplicarTroca('${s.fa.nome}','${s.fb.nome}')">Aplicar</button></div>`;
+    });
+    html+=`</div>`;
+  } else {
+    html+=`<div style="text-align:center;color:var(--text-hint);font-size:12px;padding:16px">
+             Sem trocas críticas para esta semana.</div>`;
+  }
+
+  let registos=[];
+  days.forEach(date=>{
+    funcionarios.forEach(f=>{
+      const st=getStatus(f,date);
+      if(st==='FALTA'||st==='BAIXA'){
+        const k=empKey(f,date);
+        registos.push({nome:f.nome,st,data:fmt2(date),nota:noteOverrides[k]||''});
+      }
+    });
+  });
+  if(registos.length){
+    html+=`<div class="swap-card"><h4 style="color:var(--text-danger)">Faltas e Baixas — Semana Atual</h4>`;
+    registos.forEach(r=>{
+      html+=`<div class="sug-row">
+        <span><span class="shift-badge ${r.st==='FALTA'?'badge-falta':'badge-baixa'}"
+              style="font-size:9px">${r.st}</span>
+        ${r.nome} &bull; ${r.data}${r.nota?` &bull; ${r.nota}`:''}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  document.getElementById('view-trocas').innerHTML=html;
+  const h=document.getElementById('hint-trocas');
+  if(h) h.textContent=registos.length?registos.length+'!':'';
+  updateHints();
+}
+
+/* =============================================
+   MODAIS
+   ============================================= */
+function openShiftModal(nome,dateStr){
+  currentShiftEdit={name:nome,date:dateStr};
+  document.getElementById('modal-shift-title').innerText=`Editar Dia — ${nome}`;
+  document.getElementById('modal-shift-desc').innerText=`Data: ${dateStr}`;
+  document.getElementById('edit-shift-note').value='';
+  document.getElementById('modal-shift').classList.add('open');
+}
+function saveShiftOverride(){
+  if(!currentShiftEdit) return;
+  const val=document.getElementById('edit-shift-spec').value;
+  const nota=document.getElementById('edit-shift-note').value.trim();
+  const k=currentShiftEdit.name+'_'+currentShiftEdit.date;
+  if(val==='RESET'){delete shiftOverrides[k];delete statusOverrides[k];delete noteOverrides[k];}
+  else if(['FOLGA','FALTA','BAIXA'].includes(val)){statusOverrides[k]=val;delete shiftOverrides[k];if(nota)noteOverrides[k]=nota;}
+  else{delete statusOverrides[k];shiftOverrides[k]=val;if(nota)noteOverrides[k]=nota;}
+  closeModal('modal-shift');
+  renderSemana();renderMes();renderTrocas();renderEquipa();
+  showConfirm(`Atualizado: ${currentShiftEdit.name}`);
+}
+function openEditEmp(idx){
+  editingIdx=idx; const f=funcionarios[idx];
+  document.getElementById('modal-title').textContent=`Editar: ${f.nome}`;
+  document.getElementById('edit-name').value=f.nome;
+  document.getElementById('edit-turno').value=f.fixo?f.turno:'ROTATIVO';
+  const fo=getFolgasBase(f);
+  document.getElementById('edit-folga').value=fo.length?String(fo[0]):'1';
+  document.getElementById('modal-emp').classList.add('open');
+}
+function saveEmp(){
+  if(editingIdx<0) return;
+  const f=funcionarios[editingIdx];
+  f.nome=document.getElementById('edit-name').value.trim()||f.nome;
+  const nv=document.getElementById('edit-turno').value;
+  if(nv==='ROTATIVO'){f.fixo=false;f.turno='ROTATIVO';}
+  else{f.fixo=true;f.turno=nv;}
+  f.folga=[parseInt(document.getElementById('edit-folga').value)];
+  closeModal('modal-emp');
+  renderEquipa();renderSemana();renderMes();renderTrocas();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+/* =============================================
+   LÓGICA DE NEGÓCIO
+   ============================================= */
+function aplicarTroca(nA,nB){
+  const fA=funcionarios.find(f=>f.nome===nA),fB=funcionarios.find(f=>f.nome===nB);
+  if(!fA||!fB) return;
+  const tmp=fA.folga; fA.folga=fB.folga; fB.folga=tmp;
+  renderTrocas();renderSemana();renderEquipa();
+  showConfirm(`Folgas trocadas: ${nA} e ${nB}`);
+}
+
+function gerarSegundasFolgas(){
+  const days=getWeekDates(currentWeekOffset);
+  days.forEach(d=>{
+    const dStr=fmtKey(d);
+    Object.keys(statusOverrides).forEach(k=>{
+      if(k.endsWith(dStr)&&statusOverrides[k]==='FOLGA') delete statusOverrides[k];
+    });
+  });
+  const candidatos=funcionarios.filter(f=>!f.fixo).sort((a,b)=>
+    (contadorSegundaFolga[a.nome]||0)-(contadorSegundaFolga[b.nome]||0)
+  );
+  let affected=0;
+  candidatos.forEach(f=>{
+    let folgasNaSemana=days.filter(d=>isFolga(f,d)).length;
+    if(folgasNaSemana<2){
+      const prioridade=[6,0,1,2,3,4,5];
+      for(const pDay of prioridade){
+        const dateObj=days.find(x=>x.getDay()===pDay);
+        if(!dateObj||isFolga(f,dateObj)) continue;
+        const ausNesteDia=funcionarios.filter(emp=>isFolga(emp,dateObj)).length;
+        if(ausNesteDia<2){
+          statusOverrides[empKey(f,dateObj)]='FOLGA';
+          contadorSegundaFolga[f.nome]=(contadorSegundaFolga[f.nome]||0)+1;
+          affected++; break;
+        }
+      }
+    }
+  });
+  renderSemana();renderMes();renderTrocas();
+  if(affected>0) showConfirm(`${affected} segundas folgas atribuídas!`);
+  else showConfirm(`Equipa já balanceada ou sem vagas seguras.`);
+}
+
+function showConfirm(msg){
+  const el=document.getElementById('troca-confirm');
+  if(!el) return;
+  el.style.display='block'; el.textContent='✓ '+msg;
+  setTimeout(()=>{el.style.display='none';},3500);
+}
+
+function updateHints(){
+  const days=getWeekDates(currentWeekOffset); let total=0;
+  days.forEach(d=>{
+    funcionarios.forEach(f=>{const s=getStatus(f,d);if(s==='FALTA'||s==='BAIXA')total++;});
+  });
+  const h=document.getElementById('hint-trocas');
+  if(h) h.textContent=total?total+'!':'';
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.tab[data-t="${t}"]`).classList.add('active');
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  if(t==='semana') renderSemana();
+  else if(t==='mes') renderMes();
+  else if(t==='equipa') renderEquipa();
+  else if(t==='trocas') renderTrocas();
+}
+
+/* =============================================
+   PWA — INSTALL PROMPT
+   ============================================= */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click',async()=>{
+  if(!deferredPrompt){
+    alert('Para instalar:\nAndroid: menu do browser > "Adicionar ao ecrã inicial"\niOS: botão Partilhar > "Adicionar ao ecrã inicial"');
+    return;
+  }
+  deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+/* =============================================
+   INICIALIZAÇÃO
+   ============================================= */
+renderSemana();
+renderMes();
+renderEquipa();
+renderTrocas();
+</script>
+</body>
+</html>
