@@ -4,99 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gestão de Turnos - Cantinho Madalena</title>
-/* =============================================
-   REGRAS DE IMPRESSÃO (A4 Horizontal Automático)
-   ============================================= */
-@media print {
-  @page {
-    size: A4 landscape; /* Força o formato Horizontal e tamanho A4 automaticamente */
-    margin: 8mm 10mm 8mm 10mm; /* Margens ideais para o papel */
-  }
-
-  /* Converte o Modo Escuro para Modo de Impressão Económico (Fundo Branco, Letras Pretas) */
-  :root {
-    --bg-primary: #ffffff !important;
-    --bg-secondary: #ffffff !important;
-    --bg-tertiary: #ffffff !important;
-    --text-primary: #000000 !important;
-    --text-secondary: #111111 !important;
-    --text-hint: #444444 !important;
-    --border-default: #000000 !important;
-    --border-strong: #000000 !important;
-    --shadow-card: none !important;
-    
-    /* Ajusta os fundos dos estados dos turnos para cores pastel muito suaves na impressão */
-    --bg-info: #e0f2fe !important;    
-    --bg-danger: #fee2e2 !important;  
-    --bg-success: #dcfce7 !important; 
-    --bg-warning: #fef3c7 !important; 
-    --text-info: #0369a1 !important;
-    --text-danger: #b91c1c !important;
-    --text-success: #15803d !important;
-    --text-warning: #b45309 !important;
-  }
-
-  /* Ajuste geral do documento impresso */
-  body, html, .app {
-    background: #ffffff !important;
-    color: #000000 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Esconde os elementos interativos que não devem aparecer no papel */
-  .tabs, .week-nav, #install-banner, button, .no-print, .action-btn, .actions {
-    display: none !important;
-  }
-
-  /* Força a visualização ativa (Semana ou Mês) a ocupar a folha toda */
-  .view {
-    display: none !important;
-  }
-  .view.active {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    max-height: none !important;
-  }
-
-  /* Remove as barras de rolagem (scroll) dos contentores para expandir a informação */
-  .table-container, .scroll-container, .view-content {
-    overflow: visible !important;
-    max-height: none !important;
-    max-width: none !important;
-    width: 100% !important;
-    display: block !important;
-  }
-
-  /* Formata a tabela para se esticar e ajustar à largura A4 sem quebras horizontais */
-  table {
-    display: table !important;
-    width: 100% !important;
-    border-collapse: collapse !important;
-    table-layout: fixed !important; /* Distribui as colunas de forma igual */
-    page-break-inside: avoid !important;
-  }
-
-  /* Reduz ligeiramente o tamanho do texto para garantir que cabe tudo na mesma página */
-  th, td {
-    border: 1px solid #000000 !important;
-    padding: 5px 3px !important; 
-    font-size: 11px !important;  
-    color: #000000 !important;
-    text-align: center !important;
-    word-wrap: break-word !important;
-  }
-
-  th {
-    background-color: #f3f4f6 !important;
-    font-weight: bold !important;
-  }
-}
 <style>
 /* =============================================
    VARIÁVEIS GLOBAIS — DARK MODE (ecrã)
@@ -170,16 +77,10 @@ body{font-family:var(--font-main);background:var(--bg-tertiary);color:var(--text
 .week-label{font-size:clamp(12px,3vw,14px);font-weight:500;text-align:center;
             text-transform:uppercase;letter-spacing:.5px}
 
-/* BOTÃO IMPRESSÃO — visível no ecrã, escondido na própria @media print */
+/* BOTÃO IMPRESSÃO — escondido na própria @media print */
 .btn-print{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:11px;padding:5px 12px;
-  background:var(--bg-secondary);color:var(--text-primary);
-  border:1px solid var(--border-strong);border-radius:var(--radius-sm);
-  cursor:pointer;font-weight:600;transition:background .2s;
+  display:none !important; /* Escondidos os botões pequenos antigos para usar o novo botão verde global */
 }
-.btn-print:hover{background:var(--border-default)}
-.btn-print:active{transform:scale(.96)}
 
 /* DAY CARDS — GRID RESPONSIVO (ecrã) */
 .days-grid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -233,7 +134,6 @@ body{font-family:var(--font-main);background:var(--bg-tertiary);color:var(--text
 .btn-row{display:flex;gap:8px;margin-top:14px}
 .btn{flex:1;padding:9px;font-size:13px;border-radius:var(--radius-md);cursor:pointer;
      border:1px solid var(--border-default);font-weight:600;transition:all .15s}
-.btn:active{transform:scale(.97)}
 .btn-primary{background:var(--bg-info);color:var(--text-info);border-color:var(--border-info)}
 .btn-cancel{background:var(--bg-secondary);color:var(--text-primary)}
 
@@ -301,228 +201,148 @@ body{font-family:var(--font-main);background:var(--bg-tertiary);color:var(--text
 
 @media(min-width:600px){.month-cell{min-height:50px}.month-day-hdr{font-size:11px}}
 
-/* =============================================
-   IMPRESSÃO — BLOCO PRINCIPAL
-   =============================================
-   Estratégia:
-   - Semana  → A4 Landscape, 7 colunas, quadro de parede
-   - Mês     → A4 Landscape, calendário alargado
-   - Equipa  → A4 Portrait,  lista limpa
-   - Folgas  → A4 Portrait,  documento de registo
-   ============================================= */
 
-/* Classe injectada via JS antes de window.print() */
-body.print-landscape { }
-body.print-portrait  { }
-
+/* ====================================================
+   REGRAS DE IMPRESSÃO PROFISSIONAIS (A4 HORIZONTAL)
+   ==================================================== */
 @media print {
+  @page { 
+    size: A4 landscape; 
+    margin: 6mm 8mm 6mm 8mm; 
+  }
 
-  /* --- NEUTRALIZAÇÃO DO DARK MODE --- */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
   :root {
     --bg-primary:#ffffff !important;
-    --bg-secondary:#f8f8f8 !important;
+    --bg-secondary:#f4f4f5 !important;
     --bg-tertiary:#ffffff !important;
     --text-primary:#000000 !important;
-    --text-secondary:#333333 !important;
-    --text-hint:#555555 !important;
-    --border-default:#cccccc !important;
-    --border-strong:#999999 !important;
+    --text-secondary:#222222 !important;
+    --text-hint:#444444 !important;
+    --border-default:#000000 !important;
+    --border-strong:#000000 !important;
     --shadow-card:none !important;
     --shadow-modal:none !important;
   }
+
   body {
     background:#fff !important;
     color:#000 !important;
     font-size:10pt;
   }
 
-  /* --- ELEMENTOS A ESCONDER SEMPRE --- */
-  .tabs,
-  .install-banner,
-  .btn-print,
-  .modal-bg,
-  .alert-box,
-  .sug-ok,
-  .add-btn,
-  .emp-edit,
-  .week-nav button.nav-arrow,
-  .ssl-badge,
-  #troca-confirm {
+  /* Esconde elementos interativos no papel */
+  .tabs, .install-banner, .no-print, .modal-bg, .alert-box, 
+  .sug-ok, .add-btn, .emp-edit, .week-nav button.nav-arrow, .ssl-badge {
     display:none !important;
   }
 
-  /* --- ESTRUTURA GERAL --- */
   .app { max-width:100% !important; padding:0 !important; margin:0 !important; }
+  
   .header {
-    border-bottom:2pt solid #000;
-    margin-bottom:12pt;
-    padding-bottom:6pt;
+    border-bottom:1.5pt solid #000;
+    margin-bottom:8pt;
+    padding-bottom:4pt;
   }
   .header h1 { color:#000 !important; font-size:14pt; }
-  .header-sub { color:#333 !important; font-size:9pt; }
-  .week-nav { justify-content:center; border-bottom:1pt solid #ccc; padding-bottom:6pt; margin-bottom:10pt; }
-  .week-label { font-size:11pt; color:#000 !important; }
+  .header-sub { color:#222 !important; font-size:9pt; }
+  .week-nav { justify-content:center; border-bottom:0.5pt solid #000; padding-bottom:4pt; margin-bottom:8pt; }
+  .week-label { font-size:11pt; color:#000 !important; font-weight:bold; }
 
-  /* --- BADGES: contorno monocromático para poupar tinta --- */
+  /* Ajuste visual monocromático/pastel dos turnos na folha */
   .shift-badge {
-    background:transparent !important;
-    border:1pt solid #000 !important;
-    color:#000 !important;
-    font-size:7pt !important;
-    padding:2pt 4pt !important;
+    background: transparent !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-size: 7.5pt !important;
+    padding: 1pt 3pt !important;
   }
-  .badge-folga  { border-color:#cc0000 !important; color:#cc0000 !important; }
-  .badge-falta  { border-color:#6600cc !important; color:#6600cc !important; }
-  .badge-baixa  { border-color:#006633 !important; color:#006633 !important; }
+  .badge-folga  { border-color:#cc0000 !important; color:#cc0000 !important; background:#fee2e2 !important; }
+  .badge-falta  { border-color:#6600cc !important; color:#6600cc !important; background:#ddd6fe !important; }
+  .badge-baixa  { border-color:#006633 !important; color:#006633 !important; background:#dcfce7 !important; }
 
-  /* ====================================================
-     SEMANA → A4 LANDSCAPE — 7 COLUNAS (QUADRO DE PAREDE)
-     ==================================================== */
-  body.print-landscape { }
-
-  @page { size:A4 landscape; margin:1cm 1.2cm; }
-
+  /* FORÇAR A SEMANA A FICAR EM 7 COLUNAS LADO A LADO NO MAPA A4 */
   body.print-landscape .days-grid {
-    display:grid !important;
-    grid-template-columns:repeat(7,1fr) !important;
-    gap:6pt !important;
-    width:100% !important;
-  }
-  body.print-landscape .day-card {
-    border:1pt solid #000 !important;
-    border-radius:3pt !important;
-    padding:5pt !important;
-    background:#fff !important;
-    box-shadow:none !important;
-    page-break-inside:avoid !important;
-    break-inside:avoid !important;
-    min-height:100pt;
-  }
-  body.print-landscape .day-header {
-    border-bottom:1pt solid #000 !important;
-    padding-bottom:3pt !important;
-    margin-bottom:4pt !important;
-  }
-  body.print-landscape .day-name {
-    font-size:8pt !important;
-    font-weight:700 !important;
-    letter-spacing:0 !important;
-  }
-  body.print-landscape .day-date {
-    font-size:7pt !important;
-    color:#555 !important;
-  }
-  body.print-landscape .shift-row {
-    padding:2pt 0 !important;
-    border-bottom:0.5pt solid #eee !important;
-    gap:3pt !important;
-    flex-direction:column !important;
-    align-items:flex-start !important;
-  }
-  body.print-landscape .shift-row:last-child { border-bottom:none !important; }
-  body.print-landscape .emp-name {
-    font-size:7.5pt !important;
-    font-weight:600 !important;
-    white-space:normal !important;
-    line-height:1.2 !important;
-  }
-  body.print-landscape .shift-badge {
-    font-size:6.5pt !important;
-    padding:1pt 3pt !important;
-    cursor:default !important;
-  }
-  /* Folgas na semana: lista compacta */
-  body.print-landscape .folgas-print-block {
-    margin-top:4pt;
-    display:flex;
-    flex-wrap:wrap;
-    gap:2pt;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 4pt !important;
+    width: 100% !important;
   }
 
-  /* ====================================================
-     MÊS → A4 LANDSCAPE — CALENDÁRIO ALARGADO
-     ==================================================== */
+  body.print-landscape .day-card {
+    border: 1.5px solid #000000 !important;
+    border-radius: 4px !important;
+    padding: 5pt !important;
+    background: #fff !important;
+    min-height: 180pt;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  body.print-landscape .day-header {
+    border-bottom: 1px solid #000000 !important;
+    padding-bottom: 2pt !important;
+    margin-bottom: 4pt !important;
+  }
+
+  body.print-landscape .day-name { font-size: 8.5pt !important; font-weight: bold !important; color:#000 !important; }
+  body.print-landscape .day-date { font-size: 7.5pt !important; color:#000 !important; }
+
+  body.print-landscape .shift-row {
+    padding: 3pt 0 !important;
+    border-bottom: 0.5pt solid #ddd !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2pt !important;
+  }
+
+  body.print-landscape .emp-name {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    white-space: normal !important;
+  }
+
+  /* FORÇAR O MÊS (CALENDÁRIO) A EXPANDIR NA HORIZONTAL */
   body.print-mes .month-grid {
-    gap:4pt !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 3pt !important;
+    width: 100% !important;
   }
   body.print-mes .month-cell {
-    min-height:55pt !important;
-    border:1pt solid #ccc !important;
-    border-radius:2pt !important;
-    background:#fff !important;
-    padding:3pt !important;
-  }
-  body.print-mes .month-cell.today {
-    border:2pt solid #0055cc !important;
-    background:#eef4ff !important;
+    min-height: 48pt !important;
+    border: 1px solid #000000 !important;
+    background: #fff !important;
+    padding: 3pt !important;
   }
   body.print-mes .month-day-hdr {
-    font-size:9pt !important;
-    color:#000 !important;
-    border-bottom:1pt solid #ccc;
-    padding-bottom:3pt;
+    font-size: 8.5pt !important;
+    font-weight: bold !important;
+    color: #000 !important;
+    border-bottom: 1px solid #000;
   }
-  body.print-mes .cell-num { font-size:9pt !important; font-weight:700 !important; }
-  body.print-mes .cell-dot { width:6pt !important; height:6pt !important; }
-  body.print-mes .dot-folga { background:#cc0000 !important; }
-  body.print-mes .dot-turno { background:#0055cc !important; }
-  body.print-mes .dot-falta { background:#6600cc !important; }
-  body.print-mes .dot-baixa { background:#006633 !important; }
+  body.print-mes .cell-num { font-size: 9pt !important; font-weight: bold !important; }
+  body.print-mes .cell-dot { width: 6pt !important; height: 6pt !important; border: 0.5pt solid #000; }
+  body.print-mes .dot-folga { background: #ff0000 !important; }
+  body.print-mes .dot-turno { background: #0055cc !important; }
+  body.print-mes .dot-falta { background: #6600cc !important; }
+  body.print-mes .dot-baixa { background: #006633 !important; }
 
-  /* ====================================================
-     EQUIPA & FOLGAS → A4 PORTRAIT
-     ==================================================== */
-  body.print-portrait {
-    /* @page injected via JS */
-  }
-  body.print-portrait .emp-row {
-    background:#fff !important;
-    border:1pt solid #ccc !important;
-    border-radius:3pt !important;
-    margin-bottom:6pt !important;
-    padding:6pt 8pt !important;
-    page-break-inside:avoid !important;
-    break-inside:avoid !important;
-  }
-  body.print-portrait .emp-avatar {
-    border:1pt solid #ccc !important;
-    background:#eee !important;
-    color:#000 !important;
-  }
-  body.print-portrait .emp-info .name { color:#000 !important; font-size:10pt !important; }
-  body.print-portrait .emp-info .detail { color:#333 !important; font-size:8pt !important; }
-
-  body.print-portrait .swap-card {
-    background:#fff !important;
-    border:1pt solid #ccc !important;
-    border-radius:3pt !important;
-    padding:8pt !important;
-    margin-bottom:8pt !important;
-    page-break-inside:avoid !important;
-    break-inside:avoid !important;
-  }
-  body.print-portrait .swap-card h4 { color:#000 !important; font-size:10pt !important; }
-  body.print-portrait .sug-row { font-size:9pt !important; color:#000 !important; border-bottom:0.5pt solid #ccc !important; }
-
-  /* Rodapé de impressão */
   .print-footer {
-    display:block !important;
-    text-align:center;
-    font-size:7.5pt;
-    color:#555;
-    border-top:0.5pt solid #ccc;
-    margin-top:12pt;
-    padding-top:6pt;
+    display: block !important;
+    text-align: center;
+    font-size: 8pt;
+    color: #444;
+    border-top: 1px solid #000;
+    margin-top: 15pt;
+    padding-top: 4pt;
   }
 }
 
-/* Esconder rodapé no ecrã */
-.print-footer { display:none; }
-
+.print-footer { display: none; }
 </style>
 </head>
 <body>
@@ -541,11 +361,11 @@ body.print-portrait  { }
             onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
   </div>
 
-<div style="text-align: center; margin: 12px 0;" class="no-print">
-  <button onclick="window.print()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: background 0.2s;">
-    🖨️ Imprimir Escala (A4 Horizontal)
-  </button>
-</div>
+  <div style="text-align: center; margin: 8px 0 14px 0;" class="no-print">
+    <button onclick="forçarEImprimir()" style="padding: 10px 24px; background-color: #22c55e; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.4); transition: background 0.2s;">
+      🖨️ Imprimir Esta Visualização (A4 Horizontal)
+    </button>
+  </div>
 
   <div class="tabs">
     <button class="tab active" data-t="semana" onclick="switchTab('semana')">Semana <span class="tab-hint" id="hint-semana"></span></button>
@@ -559,13 +379,11 @@ body.print-portrait  { }
   <div id="view-equipa" class="view"></div>
   <div id="view-trocas" class="view"></div>
 
-  <!-- Rodapé visível apenas na impressão -->
   <div class="print-footer" id="print-footer">
     Cantinho · Madalena — Gestão de Turnos — Impresso em <span id="print-date"></span>
   </div>
 </div>
 
-<!-- Modal editar funcionário -->
 <div class="modal-bg" id="modal-emp">
   <div class="modal">
     <h3 id="modal-title">Editar Funcionário</h3>
@@ -595,7 +413,6 @@ body.print-portrait  { }
   </div>
 </div>
 
-<!-- Modal alterar turno / falta / baixa -->
 <div class="modal-bg" id="modal-shift">
   <div class="modal">
     <h3 id="modal-shift-title">Alterar Dia</h3>
@@ -632,6 +449,7 @@ const DIAS_PT   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const DIAS_FULL = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const DIAS_CLS  = ['c-dom','c-seg','c-ter','c-qua','c-qui','c-sex','c-sab'];
 
+let currentTab = 'semana';
 let currentWeekOffset = 0;
 let currentMonth = new Date();
 let editingIdx = -1;
@@ -708,44 +526,31 @@ function fmtDateLong(d){
 }
 
 /* =============================================
-   IMPRESSÃO INTELIGENTE
-   Injeta @page + classe body antes de print()
-   e restaura após afterprint
+   SISTEMA DE IMPRESSÃO INTELIGENTE REFORMULADO
    ============================================= */
-let printStyleTag = null;
-
-function printView(mode){
-  // Atualizar data de rodapé
+function forçarEImprimir() {
+  // Define o rodapé com a data atual
   document.getElementById('print-date').textContent = fmtDateLong(new Date());
-
-  // Remover tag anterior se existir
-  if(printStyleTag){ printStyleTag.remove(); printStyleTag=null; }
-
-  const isLandscape = (mode==='semana'||mode==='mes');
-  const cls = isLandscape ? 'print-landscape' : 'print-portrait';
-
-  // Injetar @page dinâmico
-  printStyleTag = document.createElement('style');
-  if(isLandscape){
-    printStyleTag.textContent = `@media print { @page { size: A4 landscape; margin: 1cm 1.2cm; } }`;
-  } else {
-    printStyleTag.textContent = `@media print { @page { size: A4 portrait;  margin: 1.5cm; } }`;
+  
+  // Limpa classes residuais
+  document.body.classList.remove('print-landscape', 'print-mes');
+  
+  // Força o comportamento correto dependendo da aba ativa
+  if (currentTab === 'semana') {
+    document.body.classList.add('print-landscape');
+  } else if (currentTab === 'mes') {
+    document.body.classList.add('print-landscape', 'print-mes');
   }
-  document.head.appendChild(printStyleTag);
-
-  // Classe de modo no body
-  document.body.classList.remove('print-landscape','print-portrait','print-mes');
-  document.body.classList.add(cls);
-  if(mode==='mes') document.body.classList.add('print-mes');
-
+  
+  // Executa o comando nativo de impressão
   window.print();
 }
 
-// Limpar classes após impressão
-window.addEventListener('afterprint',()=>{
-  document.body.classList.remove('print-landscape','print-portrait','print-mes');
-  if(printStyleTag){ printStyleTag.remove(); printStyleTag=null; }
+// Limpa as classes de modificação de folha após fechar a janela de impressão
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('print-landscape', 'print-mes');
 });
+
 
 /* =============================================
    RENDER SEMANA
@@ -759,7 +564,6 @@ function renderSemana(){
     <button class="nav-arrow" onclick="changeWeek(-1)">&#8592;</button>
     <div class="week-nav-center">
       <span class="week-label">${fmt2(days[0])} a ${fmt2(days[6])}</span>
-      <button class="btn-print" onclick="printView('semana')">&#128438; Imprimir Semana A4</button>
     </div>
     <button class="nav-arrow" onclick="changeWeek(1)">&#8594;</button>
   </div>
@@ -831,7 +635,6 @@ function renderMes(){
     <button class="nav-arrow" onclick="changeMonth(-1)">&#8592;</button>
     <div class="week-nav-center">
       <span class="week-label">${MESES[mo]} ${yr}</span>
-      <button class="btn-print" onclick="printView('mes')">&#128438; Imprimir Mês A4</button>
     </div>
     <button class="nav-arrow" onclick="changeMonth(1)">&#8594;</button>
   </div>
@@ -891,9 +694,7 @@ function changeMonth(d){currentMonth.setMonth(currentMonth.getMonth()+d);renderM
    RENDER EQUIPA
    ============================================= */
 function renderEquipa(){
-  let html=`<div style="text-align:right;margin-bottom:10px">
-    <button class="btn-print" onclick="printView('equipa')">&#128438; Imprimir Equipa A4</button>
-  </div>`;
+  let html=``;
   let baixaCount=0;
   funcionarios.forEach((f,i)=>{
     const ini=f.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
@@ -925,10 +726,7 @@ function renderEquipa(){
    RENDER TROCAS / FOLGAS
    ============================================= */
 function renderTrocas(){
-  let html=`<div class="troca-confirm" id="troca-confirm"></div>
-  <div style="text-align:right;margin-bottom:10px">
-    <button class="btn-print" onclick="printView('trocas')">&#128438; Imprimir Folgas A4</button>
-  </div>`;
+  let html=`<div class="troca-confirm" id="troca-confirm"></div>`;
 
   html+=`<div class="swap-card">
     <h4 style="color:var(--tab-equipa)">Motor 2.ª Folga Inteligente</h4>
@@ -1096,6 +894,7 @@ function updateHints(){
 }
 
 function switchTab(t){
+  currentTab = t; // Atualiza o estado da aba ativa global
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.querySelector(`.tab[data-t="${t}"]`).classList.add('active');
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
