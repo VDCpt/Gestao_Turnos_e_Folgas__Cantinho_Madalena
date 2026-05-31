@@ -1,0 +1,93 @@
+/* =============================================
+   REGRAS DE IMPRESSÃO (A4 Horizontal Automático)
+   ============================================= */
+@media print {
+  @page {
+    size: A4 landscape; /* Força o formato Horizontal e tamanho A4 automaticamente */
+    margin: 8mm 10mm 8mm 10mm; /* Margens ideais para o papel */
+  }
+
+  /* Converte o Modo Escuro para Modo de Impressão Económico (Fundo Branco, Letras Pretas) */
+  :root {
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #ffffff !important;
+    --bg-tertiary: #ffffff !important;
+    --text-primary: #000000 !important;
+    --text-secondary: #111111 !important;
+    --text-hint: #444444 !important;
+    --border-default: #000000 !important;
+    --border-strong: #000000 !important;
+    --shadow-card: none !important;
+    
+    /* Ajusta os fundos dos estados dos turnos para cores pastel muito suaves na impressão */
+    --bg-info: #e0f2fe !important;    
+    --bg-danger: #fee2e2 !important;  
+    --bg-success: #dcfce7 !important; 
+    --bg-warning: #fef3c7 !important; 
+    --text-info: #0369a1 !important;
+    --text-danger: #b91c1c !important;
+    --text-success: #15803d !important;
+    --text-warning: #b45309 !important;
+  }
+
+  /* Ajuste geral do documento impresso */
+  body, html, .app {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Esconde os elementos interativos que não devem aparecer no papel */
+  .tabs, .week-nav, #install-banner, button, .no-print, .action-btn, .actions {
+    display: none !important;
+  }
+
+  /* Força a visualização ativa (Semana ou Mês) a ocupar a folha toda */
+  .view {
+    display: none !important;
+  }
+  .view.active {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Remove as barras de rolagem (scroll) dos contentores para expandir a informação */
+  .table-container, .scroll-container, .view-content {
+    overflow: visible !important;
+    max-height: none !important;
+    max-width: none !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  /* Formata a tabela para se esticar e ajustar à largura A4 sem quebras horizontais */
+  table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important; /* Distribui as colunas de forma igual */
+    page-break-inside: avoid !important;
+  }
+
+  /* Reduz ligeiramente o tamanho do texto para garantir que cabe tudo na mesma página */
+  th, td {
+    border: 1px solid #000000 !important;
+    padding: 5px 3px !important; 
+    font-size: 11px !important;  
+    color: #000000 !important;
+    text-align: center !important;
+    word-wrap: break-word !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: bold !important;
+  }
+}
